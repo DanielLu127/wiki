@@ -20,6 +20,7 @@ public class EbookController {
     private EbookService ebookService;
 
     @GetMapping("/list")
+    //将repuest封装成 EbookReq类
     public CommonResp list(EbookReq req) {
         CommonResp<List<EbookResp>> resp = new CommonResp<>();
         List<EbookResp> list = ebookService.list(req);
