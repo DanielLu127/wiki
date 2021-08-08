@@ -39,22 +39,42 @@
     <a-layout-content
       :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
   >
-    Content
+      <pre>
+        {{ ebooks }}
+        {{ ebooks2 }}
+      </pre>
+
   </a-layout-content>
   </a-layout>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted, ref, reactive, toRef} from 'vue';
 import axios from 'axios';
 
 export default defineComponent({
   name: 'Home',
+
   setup() {
     console.log("setup");
-    axios.get("http://localhost:8082/ebook/list?name=Spring").then((response) => {
-      console.log(response);
-    })
+    const ebooks = ref() //用ref可以让变量变成响应式数据，只有响应式数据可以实时刷新到界面上
+    const ebooks1 = reactive({books: []});
+    //生命周期函数onMounted, setup函数执行的时候界面还没有渲染好
+    //所以尽量把初始化函数写进生命周期函数
+    onMounted( () => {
+      console.log("onMounted");
+      axios.get("http://localhost:8082/ebook/list?name=Spring").then((response) => {
+        const data = response.data;
+        ebooks.value = data.content;
+        ebooks1.books = data.content;
+        console.log(response);
+      });
+    });
+    //html代码要拿到响应式变量，需要在setup最后return
+    return {
+      ebooks,
+      ebooks2: toRef(ebooks1, "books")
+    }
   }
 });
 </script>
