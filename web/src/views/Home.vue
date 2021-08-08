@@ -91,8 +91,9 @@ export default defineComponent({
     //生命周期函数onMounted, setup函数执行的时候界面还没有渲染好
     //所以尽量把初始化函数写进生命周期函数
     onMounted( () => {
-      console.log("onMounted");
-      axios.get("http://localhost:8082/ebook/list").then((response) => {
+      console.log("onMounted111");
+      //在main.ts里配置了baseURL所以URL不用写全
+      axios.get("/ebook/list").then((response) => {
         const data = response.data;
         ebooks.value = data.content;
         ebooks1.books = data.content;
