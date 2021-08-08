@@ -37,7 +37,7 @@
     </a-menu>
   </a-layout-sider>
     <a-layout-content
-      :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
+      :style="{ background: 'rgb(255,255,255)', padding: '24px', margin: 0, minHeight: '280px' }"
   >
       <a-list item-layout="vertical" size="large" :pagination="pagination" :data-source="listData">
         <template #footer>
