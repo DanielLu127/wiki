@@ -14,26 +14,54 @@
         </template>
         <template v-slot:action="{ text, record }">
           <a-space size="small">
-            <a-button type="primary">
-              编辑
+            <a-button type="dashed" @click="edit(record)">
+              Edit
             </a-button>
-            <a-button type="danger">
-              删除
+            <a-button type="dashed" @click="confirmMessage">
+              Delete
             </a-button>
           </a-space>
         </template>
       </a-table>
     </a-layout-content>
   </a-layout>
+
+  <a-modal title="ebookForm"
+      v-model:visible="modalVisible"
+      :confirm-loading="modalLoading"
+      @ok="handleModalOk"
+  >
+    <a-form :model="ebook" :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }">
+      <a-form-item label="封面">
+        <a-input v-model:value="ebook.cover" />
+      </a-form-item>
+      <a-form-item label="名称">
+        <a-input v-model:value="ebook.name" />
+      </a-form-item>
+      <a-form-item label="分类一">
+        <a-input v-model:value="ebook.category1Id" />
+      </a-form-item>
+      <a-form-item label="分类二">
+        <a-input v-model:value="ebook.category2Id" />
+      </a-form-item>
+      <a-form-item label="描述">
+        <a-input v-model:value="ebook.desc" type="textarea" />
+      </a-form-item>
+    </a-form>
+  </a-modal>
+
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
+import {createVNode, defineComponent, onMounted, ref} from 'vue';
 import axios from 'axios';
+import {ExclamationCircleOutlined} from "@ant-design/icons-vue";
+import { Modal } from 'ant-design-vue';
 
 export default defineComponent({
   name: 'AdminEbook',
   setup() {
+    //初始化变量,用于接收后端的数据, 其中ebooks, pagination, loading为响应式变量
     const ebooks = ref();
     const pagination = ref({
       current: 1,
@@ -41,7 +69,6 @@ export default defineComponent({
       total: 0
     });
     const loading = ref(false);
-
     const columns = [
       {
         title: '封面',
@@ -81,22 +108,29 @@ export default defineComponent({
     ];
 
     /**
-     * 数据查询
+     * 数据查询,调用后端接口
      **/
     const handleQuery = (params: any) => {
       loading.value = true;
-      axios.get("/ebook/list", params).then((response) => {
+      axios.get("/ebook/list", {
+        params: {
+          page: params.page,
+          size: params.size
+        }
+      }).then((response) => {
         loading.value = false;
+        //后端返回的结果
         const data = response.data;
-        ebooks.value = data.content;
+        ebooks.value = data.content.list;
 
         // 重置分页按钮
         pagination.value.current = params.page;
+        pagination.value.total = data.content.total;
       });
     };
 
     /**
-     * 表格点击页码时触发
+     * 表格点击页码时触发数据查询函数
      */
     const handleTableChange = (pagination: any) => {
       console.log("看看自带的分页参数都有啥：" + pagination);
@@ -106,16 +140,75 @@ export default defineComponent({
       });
     };
 
+    /**
+    Click响应函数
+    */
+    const confirmMessage = () => {
+      Modal.confirm({
+        title: 'Are you sure delete this task?',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: 'Some descriptions',
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk() {
+          console.log('OK');
+        },
+        onCancel() {
+          console.log('Cancel');
+        },
+      });
+    };
+
+    /**
+     *  -------- 表单 ---------
+     */
+    const ebook = ref({});
+    const modalVisible = ref(false);
+    const modalLoading = ref(false);
+    const handleModalOk = () => {
+      modalLoading.value = true;
+      setTimeout(() => {
+        modalVisible.value = false;
+        modalLoading.value = false;
+      }, 2000);
+    };
+
+    /**
+     * 编辑
+     */
+    const edit = (record: any) => {
+      modalVisible.value = true;
+      ebook.value = record
+    };
+
+
+    /**
+     * 初始化显示的数据,传递到后端的参数为page和size,注意名称要和后端对应
+     * handleQuery初始时会传给handleQuery函数然后传给后端
+     */
     onMounted(() => {
-      handleQuery({});
+      handleQuery({
+        page: 1,
+        size: pagination.value.pageSize
+      });
     });
 
+    /**
+     * 将数据返回给html
+    */
     return {
       ebooks,
       pagination,
       columns,
       loading,
-      handleTableChange
+      handleTableChange,
+      confirmMessage,
+      edit,
+      ebook,
+      modalVisible,
+      modalLoading,
+      handleModalOk
     }
   }
 });

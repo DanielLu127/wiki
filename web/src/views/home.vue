@@ -69,40 +69,25 @@ import axios from 'axios';
 
 const listData: any = [];
 
-for (let i = 0; i < 23; i++) {
-  listData.push({
-    href: 'https://www.antdv.com/',
-    title: `ant design vue part ${i}`,
-    avatar: 'https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png',
-    description:
-        'Ant Design, a design language for background applications, is refined by Ant UED Team.',
-    content:
-        'We supply a series of design principles, practical patterns and high quality design resources (Sketch and Axure), to help people create their product prototypes beautifully and efficiently.',
-  });
-}
-
 export default defineComponent({
   name: 'Home',
 
   setup() {
     console.log("setup");
     const ebooks = ref() //用ref可以让变量变成响应式数据，只有响应式数据可以实时刷新到界面上
-    const ebooks1 = reactive({books: []});
+    //const ebooks1 = reactive({books: []}); reactive是另外一种让变量变成响应式数据的方法
     //生命周期函数onMounted, setup函数执行的时候界面还没有渲染好
-    //所以尽量把初始化函数写进生命周期函数
+    //所以尽量把初始化内容写进生命周期函数
     onMounted( () => {
       //在main.ts里配置了baseURL所以URL不用写全
       axios.get("/ebook/list").then((response) => {
         const data = response.data;
-        ebooks.value = data.content;
-        ebooks1.books = data.content;
+        ebooks.value = data.content.list;
       });
     });
-    //html代码要拿到响应式变量，需要在setup最后return
+    //将变量返回给html
     return {
       ebooks,
-      ebooks2: toRef(ebooks1, "books"),
-      listData,
       pagination:  {
         onChange: (page: any) => {
           console.log(page);
