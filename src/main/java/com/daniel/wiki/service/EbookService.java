@@ -5,7 +5,12 @@ import com.daniel.wiki.domain.EbookExample;
 import com.daniel.wiki.mapper.EbookMapper;
 import com.daniel.wiki.req.EbookReq;
 import com.daniel.wiki.resp.EbookResp;
+import com.daniel.wiki.resp.PageResp;
 import com.daniel.wiki.util.CopyUtil;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -17,32 +22,45 @@ import java.util.List;
 @Service
 public class EbookService {
 
+    private static final Logger LOG = LoggerFactory.getLogger(EbookService.class);
+
     @Resource
     private EbookMapper ebookMapper;
 
-    public List<EbookResp> list(EbookReq req) {
-        //设置criteria
+    public PageResp<EbookResp> list(EbookReq req) {
+
+        //设置criteria，帮助查询
         EbookExample ebookExample = new EbookExample();
         EbookExample.Criteria criteria = ebookExample.createCriteria();
-        //动态sql
+        //动态sql,模糊查询
         if(!ObjectUtils.isEmpty(req.getName())) {
             criteria.andNameLike("%" + req.getName() + "%");
         }
-        //通过ebookMapper Interface操作数据库，取出数据
+
+
+
+        //设置分页查询,用ebooklist得到pageinfo
+        //这句话只对下面代码遇到的第一个sql查询有效
+        //表示查询第几页,每页多少行
+        PageHelper.startPage(req.getPage(), req.getSize());
+        //通过ebookMapper Interface操作数据库，取出数据, 类型为一个list
         List<Ebook> ebookList = ebookMapper.selectByExample(ebookExample);
-        //返回 EbookResp类型
-        List<EbookResp> respList = new ArrayList<>();
+        //得到list后进行分页
+        PageInfo<Ebook> pageInfo = new PageInfo<>(ebookList);
+
+        //写日志用{}，不用+
+        LOG.info("Total rows: {}", pageInfo.getTotal());
+        LOG.info("Total pages:{}", pageInfo.getPages());
+
+
         //将转Ebook类型转为EbookResp类型
         List<EbookResp> list = CopyUtil.copyList(ebookList, EbookResp.class);
-        //或者使用下面代码
-       /* for (Ebook ebook : ebookList) {
-            EbookResp ebookResp = new EbookResp();
-            //ebookResp.setId(ebook.getId());
-            BeanUtils.copyProperties(ebook, ebookResp);
-            respList.add(ebookResp);
-        }*/
 
+        //创建返回值，类型为pageResp
+        PageResp<EbookResp> pageResp = new PageResp();
+        pageResp.setTotal(pageInfo.getTotal());
+        pageResp.setList(list);
 
-        return list;
+        return pageResp;
     }
 }
