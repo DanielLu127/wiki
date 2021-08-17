@@ -1,6 +1,11 @@
 <template>
   <a-layout>
     <a-layout-content :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }">
+      <p>
+        <a-button type="dashed" @click="add()" size='large'>
+          Add
+        </a-button>
+      </p>
       <a-table
           :columns="columns"
           :row-key="record => record.id"
@@ -184,11 +189,19 @@ export default defineComponent({
     };
 
     /**
-     * 编辑
+     * edit
      */
     const edit = (record: any) => {
       modalVisible.value = true;
       ebook.value = record
+    };
+
+    /**
+     * Add
+     */
+    const add = (record: any) => {
+      modalVisible.value = true;
+      ebook.value = {};
     };
 
 
@@ -213,7 +226,10 @@ export default defineComponent({
       loading,
       handleTableChange,
       confirmMessage,
+
       edit,
+      add,
+
       ebook,
       modalVisible,
       modalLoading,

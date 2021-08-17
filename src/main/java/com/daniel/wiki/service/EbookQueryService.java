@@ -8,6 +8,7 @@ import com.daniel.wiki.req.EbookSaveReq;
 import com.daniel.wiki.resp.EbookResp;
 import com.daniel.wiki.resp.PageResp;
 import com.daniel.wiki.util.CopyUtil;
+import com.daniel.wiki.util.SnowFlake;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -25,6 +26,9 @@ public class EbookQueryService {
 
     @Resource
     private EbookMapper ebookMapper;
+
+    @Resource
+    private SnowFlake snowFlake;
 
     public PageResp<EbookResp> list(EbookQueryReq req) {
 
@@ -67,6 +71,11 @@ public class EbookQueryService {
         Ebook ebook = CopyUtil.copy(req, Ebook.class);
         if (ObjectUtils.isEmpty(req.getId())) {
             //新增
+            LOG.info("get new");
+            ebook.setId(snowFlake.nextId());
+            ebook.setDocCount(0);
+            ebook.setViewCount(0);
+            ebook.setVoteCount(0);
             ebookMapper.insert(ebook);
         }
         else {
