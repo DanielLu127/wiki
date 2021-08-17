@@ -2,27 +2,17 @@
   <a-layout>
     <a-layout-content :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }">
       <p>
-        <a-form layout="inline" :model="search">
-         <a-form-item>
-           <a-input v-model:value="search.name" placeholder="Name">
-           </a-input>
-         </a-form-item>
-          <a-button type="dashed" @click="handleQuery({page: 1, size: pagination.pageSize})" size='medium'>
-            Search
-          </a-button>
          <a-button type="dashed" @click="add()" size='medium'>
             Add
          </a-button>
-       </a-form>
       </p>
-
+      <!--前面加冒号表示变量的意思-->
       <a-table
           :columns="columns"
           :row-key="record => record.id"
           :data-source="categorys"
-          :pagination="pagination"
+          :pagination="false"
           :loading="loading"
-          @change="handleTableChange"
       >
         <template #cover="{ text: cover }">
           <img v-if="cover" :src="cover" alt="avatar" />
@@ -49,7 +39,7 @@
     </a-layout-content>
   </a-layout>
 
-  <a-modal title="Add a new book"
+  <a-modal title="Add a Category"
       v-model:visible="modalVisible"
       :confirm-loading="modalLoading"
       @ok="handleModalOk"
@@ -81,14 +71,7 @@ export default defineComponent({
   name: 'AdminCategory',
   setup() {
     //初始化变量,用于接收后端的数据, 其中categorys, pagination, loading为响应式变量
-    const search = ref();
-    search.value = {};
     const categorys = ref();
-    const pagination = ref({
-      current: 1,
-      pageSize: 10,
-      total: 0
-    });
     const loading = ref(false);
     const columns = [
       {
@@ -114,40 +97,18 @@ export default defineComponent({
     /**
      * 数据查询,调用后端接口
      **/
-    const handleQuery = (params: any) => {
+    const handleQuery = () => {
       loading.value = true;
-      console.log("This" + params);
-      axios.get("/category/list", {
-        params: {
-          name: search.value.name,
-          page: params.page,
-          size: params.size
-        }
-      }).then((response) => {
+      axios.get("/category/all").then((response) => {
         loading.value = false;
         //后端返回的结果
         const data = response.data;
         if (data.success) {
-          categorys.value = data.content.list;
-
-          // 重置分页按钮
-          pagination.value.current = params.page;
-          pagination.value.total = data.content.total;
+          categorys.value = data.content;
         } else {
           message.error(data.message);
         }
 
-      });
-    };
-
-    /**
-     * 表格点击页码时触发数据查询函数
-     */
-    const handleTableChange = (pagination: any) => {
-      console.log("看看自带的分页参数都有啥：" + pagination);
-      handleQuery({
-        page: pagination.current,
-        size: pagination.pageSize
       });
     };
 
@@ -196,10 +157,7 @@ export default defineComponent({
           if (data.success) {
             modalVisible.value = false;
             //重新加载列表
-            handleQuery({
-              page: pagination.value.current,
-              size: pagination.value.pageSize
-            });
+            handleQuery();
           } else {
             message.error(data.message);
           }
@@ -236,10 +194,7 @@ export default defineComponent({
         const data = response.data; //data = commomResp
         if (data.success) {
           //重新加载列表
-          handleQuery({
-            page: pagination.value.current,
-            size: pagination.value.pageSize
-          });
+          handleQuery();
         }
       });
     };
@@ -249,10 +204,7 @@ export default defineComponent({
      * handleQuery初始时会传给handleQuery函数然后传给后端
      */
     onMounted(() => {
-      handleQuery({
-        page: 1,
-        size: pagination.value.pageSize
-      });
+      handleQuery();
     });
 
     /**
@@ -260,17 +212,14 @@ export default defineComponent({
     */
     return {
       categorys,
-      pagination,
       columns,
       loading,
-      handleTableChange,
       confirmMessage,
       handleQuery,
 
       edit,
       add,
       handleDelete,
-      search,
 
       category,
       modalVisible,

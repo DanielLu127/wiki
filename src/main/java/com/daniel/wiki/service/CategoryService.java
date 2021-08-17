@@ -30,10 +30,27 @@ public class CategoryService {
     @Resource
     private SnowFlake snowFlake;
 
+    public List<CategoryQueryResp> all() {
+
+        //设置criteria，帮助查询
+        CategoryExample categoryExample = new CategoryExample();
+        categoryExample.setOrderByClause("sort asc");
+        CategoryExample.Criteria criteria = categoryExample.createCriteria();
+
+        //通过categoryMapper Interface操作数据库，取出数据, 类型为一个list
+        List<Category> categoryList = categoryMapper.selectByExample(categoryExample);
+
+        //将转Category类型转为CategoryResp类型
+        List<CategoryQueryResp> list = CopyUtil.copyList(categoryList, CategoryQueryResp.class);
+
+        return list;
+    }
+
     public PageResp<CategoryQueryResp> list(CategoryQueryReq req) {
 
         //设置criteria，帮助查询
         CategoryExample categoryExample = new CategoryExample();
+        categoryExample.setOrderByClause("sort asc");
         CategoryExample.Criteria criteria = categoryExample.createCriteria();
 
         if(!ObjectUtils.isEmpty(req.getName())) {
