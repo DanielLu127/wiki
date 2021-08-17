@@ -3,9 +3,9 @@ package com.daniel.wiki.controller;
 import com.daniel.wiki.req.EbookQueryReq;
 import com.daniel.wiki.req.EbookSaveReq;
 import com.daniel.wiki.resp.CommonResp;
-import com.daniel.wiki.resp.EbookResp;
+import com.daniel.wiki.resp.EbookQueryResp;
 import com.daniel.wiki.resp.PageResp;
-import com.daniel.wiki.service.EbookQueryService;
+import com.daniel.wiki.service.EbookService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -16,13 +16,13 @@ import javax.validation.Valid;
 public class EbookController {
 
     @Resource
-    private EbookQueryService ebookService;
+    private EbookService ebookService;
 
     @GetMapping("/list")
     //将repuest封装成 EbookReq类
     public CommonResp list(@Valid EbookQueryReq req) {
-        CommonResp<PageResp<EbookResp>> resp = new CommonResp<>();
-        PageResp<EbookResp> list = ebookService.list(req);
+        CommonResp<PageResp<EbookQueryResp>> resp = new CommonResp<>();
+        PageResp<EbookQueryResp> list = ebookService.list(req);
         resp.setContent(list);
         return resp;
     }

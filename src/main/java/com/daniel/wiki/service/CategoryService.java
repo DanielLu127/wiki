@@ -1,11 +1,11 @@
 package com.daniel.wiki.service;
 
-import com.daniel.wiki.domain.Ebook;
-import com.daniel.wiki.domain.EbookExample;
-import com.daniel.wiki.mapper.EbookMapper;
-import com.daniel.wiki.req.EbookQueryReq;
-import com.daniel.wiki.req.EbookSaveReq;
-import com.daniel.wiki.resp.EbookResp;
+import com.daniel.wiki.domain.Category;
+import com.daniel.wiki.domain.CategoryExample;
+import com.daniel.wiki.mapper.CategoryMapper;
+import com.daniel.wiki.req.CategoryQueryReq;
+import com.daniel.wiki.req.CategorySaveReq;
+import com.daniel.wiki.resp.CategoryQueryResp;
 import com.daniel.wiki.resp.PageResp;
 import com.daniel.wiki.util.CopyUtil;
 import com.daniel.wiki.util.SnowFlake;
@@ -20,72 +20,67 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @Service
-public class EbookQueryService {
+public class CategoryService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(EbookQueryService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CategoryService.class);
 
     @Resource
-    private EbookMapper ebookMapper;
+    private CategoryMapper categoryMapper;
 
     @Resource
     private SnowFlake snowFlake;
 
-    public PageResp<EbookResp> list(EbookQueryReq req) {
+    public PageResp<CategoryQueryResp> list(CategoryQueryReq req) {
 
         //设置criteria，帮助查询
-        EbookExample ebookExample = new EbookExample();
-        EbookExample.Criteria criteria = ebookExample.createCriteria();
-        //动态sql,模糊查询
+        CategoryExample categoryExample = new CategoryExample();
+        CategoryExample.Criteria criteria = categoryExample.createCriteria();
+
         if(!ObjectUtils.isEmpty(req.getName())) {
             criteria.andNameLike("%" + req.getName() + "%");
         }
 
-
-
-        //设置分页查询,用ebooklist得到pageinfo
+        //设置分页查询,用categorylist得到pageinfo
         //这句话只对下面代码遇到的第一个sql查询有效
         //表示查询第几页,每页多少行
         PageHelper.startPage(req.getPage(), req.getSize());
-        //通过ebookMapper Interface操作数据库，取出数据, 类型为一个list
-        List<Ebook> ebookList = ebookMapper.selectByExample(ebookExample);
+        //通过categoryMapper Interface操作数据库，取出数据, 类型为一个list
+        List<Category> categoryList = categoryMapper.selectByExample(categoryExample);
         //得到list后进行分页
-        PageInfo<Ebook> pageInfo = new PageInfo<>(ebookList);
+        PageInfo<Category> pageInfo = new PageInfo<>(categoryList);
 
         //写日志用{}，不用+
         LOG.info("Total rows: {}", pageInfo.getTotal());
         LOG.info("Total pages:{}", pageInfo.getPages());
 
 
-        //将转Ebook类型转为EbookResp类型
-        List<EbookResp> list = CopyUtil.copyList(ebookList, EbookResp.class);
+        //将转Category类型转为CategoryResp类型
+        List<CategoryQueryResp> list = CopyUtil.copyList(categoryList, CategoryQueryResp.class);
 
         //创建返回值，类型为pageResp
-        PageResp<EbookResp> pageResp = new PageResp();
+        PageResp<CategoryQueryResp> pageResp = new PageResp();
         pageResp.setTotal(pageInfo.getTotal());
         pageResp.setList(list);
 
         return pageResp;
     }
 
-    public void save(EbookSaveReq req) {
-        Ebook ebook = CopyUtil.copy(req, Ebook.class);
+    public void save(CategorySaveReq req) {
+        Category category = CopyUtil.copy(req, Category.class);
         if (ObjectUtils.isEmpty(req.getId())) {
             //新增
             Long id = snowFlake.nextId();
             LOG.info("This is" + id.toString());
-            ebook.setId(id);
-            ebook.setDocCount(0);
-            ebook.setViewCount(0);
-            ebook.setVoteCount(0);
-            ebookMapper.insert(ebook);
+            category.setId(id);
+            categoryMapper.insert(category);
         }
         else {
             //更新
-            ebookMapper.updateByPrimaryKey(ebook);
+            categoryMapper.updateByPrimaryKey(category);
         }
     }
 
     public void delete(Long id) {
-        ebookMapper.deleteByPrimaryKey(id);
+        categoryMapper.deleteByPrimaryKey(id);
     }
 }
