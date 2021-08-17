@@ -22,9 +22,17 @@
             <a-button type="dashed" @click="edit(record)">
               Edit
             </a-button>
-            <a-button type="dashed" @click="confirmMessage">
-              Delete
-            </a-button>
+            <a-popconfirm
+                title="Are you sure you want to delete this item?"
+                ok-text="Yes"
+                cancel-text="No"
+                @confirm="handleDelete(record.id)"
+            >
+              <a-button type="dashed">
+                Delete
+              </a-button>
+            </a-popconfirm>
+
           </a-space>
         </template>
       </a-table>
@@ -50,7 +58,7 @@
         <a-input v-model:value="ebook.category2Id" />
       </a-form-item>
       <a-form-item label="描述">
-        <a-input v-model:value="ebook.desc" type="textarea" />
+        <a-input v-model:value="ebook.description" type="textarea" />
       </a-form-item>
     </a-form>
   </a-modal>
@@ -204,6 +212,22 @@ export default defineComponent({
       ebook.value = {};
     };
 
+    /**
+     * Delete
+     */
+
+    const handleDelete = (id: number) => {
+      axios.delete("/ebook/delete/" + id).then((response) => {
+        const data = response.data; //data = commomResp
+        if (data.success) {
+          //重新加载列表
+          handleQuery({
+            page: pagination.value.current,
+            size: pagination.value.pageSize
+          });
+        }
+      });
+    };
 
     /**
      * 初始化显示的数据,传递到后端的参数为page和size,注意名称要和后端对应
@@ -229,6 +253,7 @@ export default defineComponent({
 
       edit,
       add,
+      handleDelete,
 
       ebook,
       modalVisible,

@@ -34,4 +34,14 @@ public class EbookController {
         ebookService.save(req);
         return resp;
     }
+
+    //根据id删除,需要传入id
+    @DeleteMapping("/delete/{id}")
+    //将repuest封装成 EbookReq类
+    //注意要加RequestBody才能以json形式接收参数
+    public CommonResp delete(@PathVariable Long id) {
+        CommonResp resp = new CommonResp<>();
+        ebookService.delete(id);
+        return resp;
+    }
 }

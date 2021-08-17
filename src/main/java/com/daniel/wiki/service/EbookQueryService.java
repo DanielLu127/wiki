@@ -71,8 +71,9 @@ public class EbookQueryService {
         Ebook ebook = CopyUtil.copy(req, Ebook.class);
         if (ObjectUtils.isEmpty(req.getId())) {
             //新增
-            LOG.info("get new");
-            ebook.setId(snowFlake.nextId());
+            Long id = snowFlake.nextId();
+            LOG.info("This is" + id.toString());
+            ebook.setId(id);
             ebook.setDocCount(0);
             ebook.setViewCount(0);
             ebook.setVoteCount(0);
@@ -82,5 +83,9 @@ public class EbookQueryService {
             //更新
             ebookMapper.updateByPrimaryKey(ebook);
         }
+    }
+
+    public void delete(Long id) {
+        ebookMapper.deleteByPrimaryKey(id);
     }
 }
