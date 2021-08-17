@@ -70,6 +70,7 @@ import {createVNode, defineComponent, onMounted, ref} from 'vue';
 import axios from 'axios';
 import {ExclamationCircleOutlined} from "@ant-design/icons-vue";
 import { Modal } from 'ant-design-vue';
+import { message } from 'ant-design-vue';
 
 export default defineComponent({
   name: 'AdminEbook',
@@ -78,7 +79,7 @@ export default defineComponent({
     const ebooks = ref();
     const pagination = ref({
       current: 1,
-      pageSize: 2,
+      pageSize: 3,
       total: 0
     });
     const loading = ref(false);
@@ -134,11 +135,16 @@ export default defineComponent({
         loading.value = false;
         //后端返回的结果
         const data = response.data;
-        ebooks.value = data.content.list;
+        if (data.success) {
+          ebooks.value = data.content.list;
 
-        // 重置分页按钮
-        pagination.value.current = params.page;
-        pagination.value.total = data.content.total;
+          // 重置分页按钮
+          pagination.value.current = params.page;
+          pagination.value.total = data.content.total;
+        } else {
+          message.error(data.message);
+        }
+
       });
     };
 
@@ -176,22 +182,35 @@ export default defineComponent({
     /**
      *  -------- 表单 ---------
      */
-    const ebook = ref({});
+    const ebook = ref({
+      id: "",
+      name: "",
+      category1Id:"",
+      category2Id:"",
+      description: ""
+    });
+
     const modalVisible = ref(false);
     const modalLoading = ref(false);
     const handleModalOk = () => {
+      if (ebook.value.name == "") {
+        message.error("name cannot be null");
+        return;
+      }
+
       modalLoading.value = true;
       axios.post("/ebook/save", ebook.value).then((response) => {
-          const data = response.data; //data = commomResp
+        const data = response.data; //data = commomResp
+        modalLoading.value = false;
           if (data.success) {
             modalVisible.value = false;
-            modalLoading.value = false;
-
             //重新加载列表
             handleQuery({
               page: pagination.value.current,
               size: pagination.value.pageSize
             });
+          } else {
+            message.error(data.message);
           }
       });
     };
@@ -209,7 +228,13 @@ export default defineComponent({
      */
     const add = (record: any) => {
       modalVisible.value = true;
-      ebook.value = {};
+      ebook.value = {
+        id: "",
+        name: "",
+        category1Id:"",
+        category2Id:"",
+        description: ""
+      };
     };
 
     /**
