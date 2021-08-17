@@ -2,10 +2,20 @@
   <a-layout>
     <a-layout-content :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }">
       <p>
-        <a-button type="dashed" @click="add()" size='large'>
-          Add
-        </a-button>
+        <a-form layout="inline" :model="search">
+         <a-form-item>
+           <a-input v-model:value="search.name" placeholder="Name">
+           </a-input>
+         </a-form-item>
+          <a-button type="dashed" @click="handleQuery({page: 1, size: pagination.pageSize})" size='medium'>
+            Search
+          </a-button>
+         <a-button type="dashed" @click="add()" size='medium'>
+            Add
+         </a-button>
+       </a-form>
       </p>
+
       <a-table
           :columns="columns"
           :row-key="record => record.id"
@@ -39,7 +49,7 @@
     </a-layout-content>
   </a-layout>
 
-  <a-modal title="ebookForm"
+  <a-modal title="Add a new book"
       v-model:visible="modalVisible"
       :confirm-loading="modalLoading"
       @ok="handleModalOk"
@@ -66,16 +76,19 @@
 </template>
 
 <script lang="ts">
-import {createVNode, defineComponent, onMounted, ref} from 'vue';
+import {createVNode, defineComponent, onMounted, ref, reactive, UnwrapRef } from 'vue';
 import axios from 'axios';
 import {ExclamationCircleOutlined} from "@ant-design/icons-vue";
 import { Modal } from 'ant-design-vue';
 import { message } from 'ant-design-vue';
+import {Tool} from "../../../util/tool";
 
 export default defineComponent({
   name: 'AdminEbook',
   setup() {
     //初始化变量,用于接收后端的数据, 其中ebooks, pagination, loading为响应式变量
+    const search = ref();
+    search.value = {};
     const ebooks = ref();
     const pagination = ref({
       current: 1,
@@ -126,8 +139,10 @@ export default defineComponent({
      **/
     const handleQuery = (params: any) => {
       loading.value = true;
+      console.log(params);
       axios.get("/ebook/list", {
         params: {
+          name: search.value.name,
           page: params.page,
           size: params.size
         }
@@ -189,7 +204,6 @@ export default defineComponent({
       category2Id:"",
       description: ""
     });
-
     const modalVisible = ref(false);
     const modalLoading = ref(false);
     const handleModalOk = () => {
@@ -220,7 +234,7 @@ export default defineComponent({
      */
     const edit = (record: any) => {
       modalVisible.value = true;
-      ebook.value = record
+      ebook.value = Tool.copy(record);
     };
 
     /**
@@ -240,7 +254,6 @@ export default defineComponent({
     /**
      * Delete
      */
-
     const handleDelete = (id: number) => {
       axios.delete("/ebook/delete/" + id).then((response) => {
         const data = response.data; //data = commomResp
@@ -275,10 +288,12 @@ export default defineComponent({
       loading,
       handleTableChange,
       confirmMessage,
+      handleQuery,
 
       edit,
       add,
       handleDelete,
+      search,
 
       ebook,
       modalVisible,
