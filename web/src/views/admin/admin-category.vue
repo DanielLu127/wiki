@@ -10,7 +10,7 @@
       <a-table
           :columns="columns"
           :row-key="record => record.id"
-          :data-source="categorys"
+          :data-source="myTree"
           :pagination="false"
           :loading="loading"
       >
@@ -71,7 +71,6 @@ export default defineComponent({
   name: 'AdminCategory',
   setup() {
     //初始化变量,用于接收后端的数据, 其中categorys, pagination, loading为响应式变量
-    const categorys = ref();
     const loading = ref(false);
     const columns = [
       {
@@ -93,6 +92,7 @@ export default defineComponent({
         slots: { customRender: 'action' }
       }
     ];
+    const myTree = ref();
 
     /**
      * 数据查询,调用后端接口
@@ -104,7 +104,7 @@ export default defineComponent({
         //后端返回的结果
         const data = response.data;
         if (data.success) {
-          categorys.value = data.content;
+          myTree.value = Tool.array2Tree(data.content, 0);
         } else {
           message.error(data.message);
         }
@@ -211,7 +211,7 @@ export default defineComponent({
      * 将数据返回给html
     */
     return {
-      categorys,
+      myTree,
       columns,
       loading,
       confirmMessage,
