@@ -32,7 +32,6 @@
                 Delete
               </a-button>
             </a-popconfirm>
-
           </a-space>
         </template>
       </a-table>
@@ -66,7 +65,6 @@
       </a-form-item>
     </a-form>
   </a-modal>
-
 </template>
 
 <script lang="ts">
@@ -114,7 +112,7 @@ export default defineComponent({
      *   }]
      * }]
      **/
-    const myTree = ref();
+    const categoryTree = ref();
 
     /**
      * 数据查询,调用后端接口
@@ -126,7 +124,7 @@ export default defineComponent({
         //后端返回的结果
         const data = response.data;
         if (data.success) {
-          myTree.value = Tool.array2Tree(data.content, 0);
+          categoryTree.value = Tool.array2Tree(data.content, 0);
         } else {
           message.error(data.message);
         }
@@ -227,7 +225,7 @@ export default defineComponent({
      * 将数据返回给html
     */
     return {
-      myTree,
+      myTree: categoryTree,
       columns,
       loading,
       confirmMessage,
