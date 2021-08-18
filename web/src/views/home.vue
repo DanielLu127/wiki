@@ -7,32 +7,24 @@
         v-model:openKeys="openKeys"
         :style="{ height: '100%', borderRight: 0 }"
     >
-      <a-sub-menu key="sub1">
+      <a-sub-menu>
         <template #title>
-          <span><user-outlined />subnav 111111</span>
+          <span>
+            All
+          </span>
         </template>
-        <a-menu-item key="1">option1</a-menu-item>
-        <a-menu-item key="2">option2</a-menu-item>
-        <a-menu-item key="3">option3</a-menu-item>
-        <a-menu-item key="4">option4</a-menu-item>
       </a-sub-menu>
-      <a-sub-menu key="sub2">
+      <a-sub-menu v-for="item in categoryTree" :key="item.id">
         <template #title>
-          <span><laptop-outlined />subnav 2</span>
+          <span>
+            {{item.name}}
+          </span>
         </template>
-        <a-menu-item key="5">option5</a-menu-item>
-        <a-menu-item key="6">option6</a-menu-item>
-        <a-menu-item key="7">option7</a-menu-item>
-        <a-menu-item key="8">option8</a-menu-item>
-      </a-sub-menu>
-      <a-sub-menu key="sub3">
-        <template #title>
-          <span><notification-outlined />subnav 3</span>
-        </template>
-        <a-menu-item key="9">option9</a-menu-item>
-        <a-menu-item key="10">option10</a-menu-item>
-        <a-menu-item key="11">option11</a-menu-item>
-        <a-menu-item key="12">option12</a-menu-item>
+        <a-menu-item v-for="childrenItem in item.children" :key="childrenItem.id">
+           <span>
+            {{childrenItem.name}}
+          </span>
+        </a-menu-item>
       </a-sub-menu>
     </a-menu>
   </a-layout-sider>
@@ -66,6 +58,8 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref, reactive, toRef} from 'vue';
 import axios from 'axios';
+import {Tool} from "../../util/tool";
+import {message} from "ant-design-vue";
 
 const listData: any = [];
 
@@ -73,12 +67,24 @@ export default defineComponent({
   name: 'Home',
 
   setup() {
-    console.log("setup");
+    const categoryTree = ref();
+    const handleCategoryQuery = () => {
+      axios.get("/category/all").then((response) => {
+        //后端返回的结果
+        const data = response.data;
+        if (data.success) {
+          categoryTree.value = Tool.array2Tree(data.content, 0);
+        } else {
+          message.error(data.message);
+        }
+      });
+    };
     const ebooks = ref() //用ref可以让变量变成响应式数据，只有响应式数据可以实时刷新到界面上
     //const ebooks1 = reactive({books: []}); reactive是另外一种让变量变成响应式数据的方法
     //生命周期函数onMounted, setup函数执行的时候界面还没有渲染好
     //所以尽量把初始化内容写进生命周期函数
     onMounted( () => {
+      handleCategoryQuery();
       //在main.ts里配置了baseURL所以URL不用写全
       axios.get("/ebook/list").then((response) => {
         const data = response.data;
@@ -87,6 +93,7 @@ export default defineComponent({
     });
     //将变量返回给html
     return {
+      categoryTree,
       ebooks,
       pagination:  {
         onChange: (page: any) => {

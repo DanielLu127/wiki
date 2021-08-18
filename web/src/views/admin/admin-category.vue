@@ -10,7 +10,7 @@
       <a-table
           :columns="columns"
           :row-key="record => record.id"
-          :data-source="myTree"
+          :data-source="categoryTree"
           :pagination="false"
           :loading="loading"
       >
@@ -55,7 +55,7 @@
           <a-select-option value="0">
             None
           </a-select-option>
-          <a-select-option v-for="c in myTree" :key="c.id" :value="c.id" :disabled="category.id === c.id">
+          <a-select-option v-for="c in categoryTree" :key="c.id" :value="c.id" :disabled="category.id === c.id">
             {{ c.name }}
           </a-select-option>
         </a-select>
@@ -225,7 +225,7 @@ export default defineComponent({
      * 将数据返回给html
     */
     return {
-      myTree: categoryTree,
+      categoryTree,
       columns,
       loading,
       confirmMessage,

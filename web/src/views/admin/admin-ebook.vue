@@ -243,7 +243,6 @@ export default defineComponent({
 
     const categoryTree = ref();
     const handleQueryCategory = () => {
-      loading.value = true;
       axios.get("/category/all").then((response) => {
         loading.value = false;
         //后端返回的结果
@@ -251,6 +250,11 @@ export default defineComponent({
         categorys = data.content;
         if (data.success) {
           categoryTree.value = Tool.array2Tree(data.content, 0);
+          //加载完分类后,再加载电子书，否则如果分类树加载很慢， 则电子书渲染会报错
+          handleQuery({
+            page: 1,
+            size: pagination.value.pageSize
+          });
         } else {
           message.error(data.message);
         }
@@ -303,10 +307,6 @@ export default defineComponent({
      */
     onMounted(() => {
       handleQueryCategory();
-      handleQuery({
-        page: 1,
-        size: pagination.value.pageSize
-      });
     });
 
     /**
