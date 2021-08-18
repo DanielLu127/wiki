@@ -1,37 +1,36 @@
 <template>
   <a-layout>
-    <a-layout-sider width="200" style="background: #fff">
-    <a-menu
-        mode="inline"
-        v-model:selectedKeys="selectedKeys2"
-        v-model:openKeys="openKeys"
-        :style="{ height: '100%', borderRight: 0 }"
+    <a-layout-sider width="230"
+        :style="{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0, 'padding-top':'60px'}"
     >
-      <a-sub-menu>
-        <template #title>
-          <span>
+      <a-menu
+          mode="inline"
+          :style="{ height: '100%', borderRight: 0 }"
+          @click="handleClick"
+      >
+        <a-menu-item key="All">
+           <span>
             All
           </span>
-        </template>
-      </a-sub-menu>
-      <a-sub-menu v-for="item in categoryTree" :key="item.id">
-        <template #title>
+        </a-menu-item>
+        <a-sub-menu v-for="item in categoryTree" :key="item.id">
+          <template #title>
           <span>
             {{item.name}}
           </span>
-        </template>
-        <a-menu-item v-for="childrenItem in item.children" :key="childrenItem.id">
+          </template>
+          <a-menu-item v-for="childrenItem in item.children" :key="childrenItem.id">
            <span>
             {{childrenItem.name}}
           </span>
-        </a-menu-item>
-      </a-sub-menu>
-    </a-menu>
-  </a-layout-sider>
+          </a-menu-item>
+        </a-sub-menu>
+      </a-menu>
+    </a-layout-sider>
     <a-layout-content
-      :style="{ background: 'rgb(255,255,255)', padding: '24px', margin: 0, minHeight: '280px' }"
-  >
-      <a-list item-layout="vertical" size="large" :grid="{ gutter: 20, column: 3 }" :data-source="ebooks">
+        :style="{ background: 'rgb(255,255,255)', 'padding-left': '250px', 'padding-top': '100px',minHeight: '28px'}"
+    >
+      <a-list item-layout="vertical" size="large" :grid="{ gutter: 20, column: 1 }" :data-source="ebooks">
         <template #renderItem="{ item }">   <!--/这里会遍历循环ebooks，将每个元素赋值给item-->
           <a-list-item key="item.name">
             <template #actions>
@@ -45,13 +44,12 @@
               <template #title>
                 <a :href="item.href">{{ item.name }}</a>
               </template>
-              <template #avatar><a-avatar :src="item.cover" /></template>
             </a-list-item-meta>
           </a-list-item>
         </template>
       </a-list>
 
-  </a-layout-content>
+    </a-layout-content>
   </a-layout>
 </template>
 
@@ -68,6 +66,34 @@ export default defineComponent({
 
   setup() {
     const categoryTree = ref();
+    let categoryId2 = 0;
+
+    const handleQuery = () => {
+      //在main.ts里配置了baseURL所以URL不用写全
+      axios.get("/ebook/list", {
+        params: {
+          page: 1,
+          size: 20,
+          categoryId2: categoryId2
+        }
+      }).then((response) => {
+        const data = response.data;
+        ebooks.value = data.content.list;
+      });
+    }
+
+    const handleClick = (value: any) => {
+      if (value.key === 'All') {
+        axios.get("/ebook/list").then((response) => {
+          const data = response.data;
+          ebooks.value = data.content.list;
+        });
+      } else {
+        categoryId2 = value.key
+        handleQuery();
+      }
+    }
+
     const handleCategoryQuery = () => {
       axios.get("/category/all").then((response) => {
         //后端返回的结果
@@ -79,22 +105,21 @@ export default defineComponent({
         }
       });
     };
+
     const ebooks = ref() //用ref可以让变量变成响应式数据，只有响应式数据可以实时刷新到界面上
     //const ebooks1 = reactive({books: []}); reactive是另外一种让变量变成响应式数据的方法
     //生命周期函数onMounted, setup函数执行的时候界面还没有渲染好
     //所以尽量把初始化内容写进生命周期函数
     onMounted( () => {
       handleCategoryQuery();
-      //在main.ts里配置了baseURL所以URL不用写全
-      axios.get("/ebook/list").then((response) => {
-        const data = response.data;
-        ebooks.value = data.content.list;
-      });
+      handleQuery();
     });
+
     //将变量返回给html
     return {
       categoryTree,
       ebooks,
+      handleClick,
       pagination:  {
         onChange: (page: any) => {
           console.log(page);
@@ -111,14 +136,14 @@ export default defineComponent({
 });
 </script>
 
-<!--scoped: 表示这里的样式只在当前的组件起作用-->
+<!--: 表示这里的样式只在当前的组件起作用-->
 <!-- 这里重新定义ant-avator样式-->
 <style scoped>
-  .ant-avatar {
-    width:50px;
-    height: 50px;
-    line-height: 50px;
-    border-radius: 8%;
-    margin: 5px 0;
-  }
+.ant-avatar {
+  width:50px;
+  height: 50px;
+  line-height: 50px;
+  border-radius: 8%;
+  margin: 5px 0;
+}
 </style>

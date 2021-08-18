@@ -143,7 +143,7 @@ export default defineComponent({
         params: {
           name: search.value.name,
           page: params.page,
-          size: params.size
+          size: params.size,
         }
       }).then((response) => {
         loading.value = false;
