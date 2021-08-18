@@ -49,7 +49,17 @@
         <a-input v-model:value="category.name" />
       </a-form-item>
       <a-form-item label="父分类">
-        <a-input v-model:value="category.parent" />
+        <a-select
+            ref="select"
+            v-model:value=category.parent
+        >
+          <a-select-option value="0">
+            None
+          </a-select-option>
+          <a-select-option v-for="c in myTree" :key="c.id" :value="c.id" :disabled="category.id === c.id">
+            {{ c.name }}
+          </a-select-option>
+        </a-select>
       </a-form-item>
       <a-form-item label="顺序">
         <a-input v-model:value="category.sort" />
@@ -92,6 +102,18 @@ export default defineComponent({
         slots: { customRender: 'action' }
       }
     ];
+    /**
+     * myTree结构
+     * [{
+     *   id: "",
+     *   name: "".
+     *   children: [{
+     *      id: "",
+     *      name: "",
+     *      childre: ...
+     *   }]
+     * }]
+     **/
     const myTree = ref();
 
     /**
@@ -135,13 +157,7 @@ export default defineComponent({
     /**
      *  -------- 表单 ---------
      */
-    const category = ref({
-      id: "",
-      name: "",
-      category1Id:"",
-      category2Id:"",
-      description: ""
-    });
+    const category = ref();
     const modalVisible = ref(false);
     const modalLoading = ref(false);
     const handleModalOk = () => {
