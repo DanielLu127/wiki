@@ -29,6 +29,11 @@
         </template>
         <template v-slot:action="{ text, record }">
           <a-space size="small">
+            <router-link to="/admin/doc">
+              <a-button type="dashed" >
+                View
+              </a-button>
+            </router-link>
             <a-button type="dashed" @click="edit(record)">
               Edit
             </a-button>
