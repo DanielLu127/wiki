@@ -112,7 +112,10 @@ export default defineComponent({
     //所以尽量把初始化内容写进生命周期函数
     onMounted( () => {
       handleCategoryQuery();
-      handleQuery();
+      axios.get("/ebook/list").then((response) => {
+        const data = response.data;
+        ebooks.value = data.content.list;
+      });
     });
 
     //将变量返回给html
