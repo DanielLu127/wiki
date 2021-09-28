@@ -27,29 +27,40 @@
         </a-sub-menu>
       </a-menu>
     </a-layout-sider>
-    <a-layout-content
-        :style="{ background: 'rgb(255,255,255)', 'padding-left': '250px', 'padding-top': '100px',minHeight: '28px'}"
-    >
-      <a-list item-layout="vertical" size="large" :grid="{ gutter: 20, column: 1 }" :data-source="ebooks">
-        <template #renderItem="{ item }">   <!--/这里会遍历循环ebooks，将每个元素赋值给item-->
-          <a-list-item key="item.name">
-            <template #actions>
+    <a-layout>
+      <a-layout-content :style="{ background: 'rgb(255,255,255)', 'padding-left': '250px',minHeight: '28px', 'padding-top': '90px'}">
+      <a-form layout="inline" :model="search" :style="{'padding-left': '20px', position: 'fixed', zIndex: 1}">
+        <a-form-item :style="{width: '300px'}">
+          <a-input v-model:value="search.name" placeholder="Name">
+          </a-input>
+        </a-form-item>
+        <a-button @click="queryWithoutCategory()" size='medium'>
+          Search
+        </a-button>
+      </a-form>
+      <a-list item-layout="vertical" size="large"
+                :grid="{ gutter: 20, column: 1 }"
+                :data-source="ebooks"
+                :style="{'padding-top': '60px'}">
+          <template #renderItem="{ item }">   <!--/这里会遍历循环ebooks，将每个元素赋值给item-->
+            <a-list-item key="item.name">
+              <template #actions>
               <span v-for="{ type, text } in actions" :key="type">
                 <component v-bind:is="type" style="margin-right: 8px" />
                 {{ text }}
               </span>
-            </template>
-
-            <a-list-item-meta :description="item.description">
-              <template #title>
-                <a :href="item.href">{{ item.name }}</a>
               </template>
-            </a-list-item-meta>
-          </a-list-item>
-        </template>
-      </a-list>
 
+              <a-list-item-meta :description="item.description">
+                <template #title>
+                  <a :href="item.href">{{ item.name }}</a>
+                </template>
+              </a-list-item-meta>
+            </a-list-item>
+          </template>
+        </a-list>
     </a-layout-content>
+    </a-layout>
   </a-layout>
 </template>
 
@@ -59,21 +70,20 @@ import axios from 'axios';
 import {Tool} from "../../util/tool";
 import {message} from "ant-design-vue";
 
-const listData: any = [];
-
 export default defineComponent({
   name: 'Home',
 
   setup() {
     const categoryTree = ref();
     let categoryId2 = 0;
-
-    const handleQuery = () => {
+    const search = ref();
+    search.value = {}; //必须要初始化
+    const ebooks = ref(); //用ref可以让变量变成响应式数据，只有响应式数据可以实时刷新到界面上
+    //const ebooks1 = reactive({books: []}); reactive是另外一种让变量变成响应式数据的方法
+    const queryWithCategory = () => {
       //在main.ts里配置了baseURL所以URL不用写全
       axios.get("/ebook/list", {
         params: {
-          page: 1,
-          size: 20,
           categoryId2: categoryId2
         }
       }).then((response) => {
@@ -81,7 +91,21 @@ export default defineComponent({
         ebooks.value = data.content.list;
       });
     }
-
+    const queryWithoutCategory = () => {
+      axios.get("/ebook/list", {
+        params: {
+          name: search.value.name,
+        }
+      }).then((response) => {
+        //后端返回的结果
+        const data = response.data;
+        if (data.success) {
+          ebooks.value = data.content.list;
+        } else {
+          message.error(data.message);
+        }
+      })
+    }
     const handleClick = (value: any) => {
       if (value.key === 'All') {
         axios.get("/ebook/list").then((response) => {
@@ -90,11 +114,10 @@ export default defineComponent({
         });
       } else {
         categoryId2 = value.key
-        handleQuery();
+        queryWithCategory();
       }
     }
-
-    const handleCategoryQuery = () => {
+    const queryCategory = () => {
       axios.get("/category/all").then((response) => {
         //后端返回的结果
         const data = response.data;
@@ -106,16 +129,9 @@ export default defineComponent({
       });
     };
 
-    const ebooks = ref() //用ref可以让变量变成响应式数据，只有响应式数据可以实时刷新到界面上
-    //const ebooks1 = reactive({books: []}); reactive是另外一种让变量变成响应式数据的方法
-    //生命周期函数onMounted, setup函数执行的时候界面还没有渲染好
-    //所以尽量把初始化内容写进生命周期函数
     onMounted( () => {
-      handleCategoryQuery();
-      axios.get("/ebook/list").then((response) => {
-        const data = response.data;
-        ebooks.value = data.content.list;
-      });
+      queryCategory();
+      queryWithoutCategory();
     });
 
     //将变量返回给html
@@ -123,6 +139,8 @@ export default defineComponent({
       categoryTree,
       ebooks,
       handleClick,
+      queryWithoutCategory,
+      search,
       pagination:  {
         onChange: (page: any) => {
           console.log(page);
